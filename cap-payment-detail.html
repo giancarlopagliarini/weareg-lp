@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAP — Payment Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #F8F9FB;
+    --surface: #FFFFFF;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --border-light: #ECEEF2;
+    --text-primary: #0F1729;
+    --text-secondary: #5A6178;
+    --text-tertiary: #8B91A5;
+    --accent: #2563EB;
+    --accent-light: #EFF4FF;
+    --accent-hover: #1D4FD7;
+    --success: #059669;
+    --success-light: #ECFDF5;
+    --warning: #D97706;
+    --warning-light: #FFFBEB;
+    --danger: #DC2626;
+    --danger-light: #FEF2F2;
+    --sidebar-bg: #0F1729;
+    --sidebar-text: #94A3C4;
+    --sidebar-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.06);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow-sm: 0 1px 2px rgba(15,23,41,0.05);
+    --shadow-md: 0 4px 12px rgba(15,23,41,0.08);
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-layout { display: flex; min-height: 100vh; }
+
+  /* ===== SIDEBAR (same as dashboard) ===== */
+  .sidebar {
+    width: 260px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .sidebar-brand {
+    padding: 24px 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .brand-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #3B82F6, #6366F1);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff; font-size: 14px; letter-spacing: -0.5px;
+  }
+
+  .brand-text { display: flex; flex-direction: column; }
+  .brand-name { color: #fff; font-weight: 600; font-size: 15px; letter-spacing: -0.3px; }
+  .brand-sub { color: var(--sidebar-text); font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  .sidebar-section { padding: 16px 12px 8px; }
+
+  .sidebar-label {
+    padding: 0 12px; font-size: 10px; font-weight: 600; color: var(--sidebar-text);
+    text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;
+  }
+
+  .sidebar-nav { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+
+  .sidebar-nav li a {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border-radius: 8px; color: var(--sidebar-text); text-decoration: none;
+    font-size: 13.5px; font-weight: 450; transition: all 0.15s;
+  }
+
+  .sidebar-nav li a:hover { background: var(--sidebar-hover); color: #C7D2E9; }
+  .sidebar-nav li a.active { background: rgba(59,130,246,0.12); color: var(--sidebar-active); font-weight: 500; }
+
+  .sidebar-nav li a .nav-icon { width: 20px; height: 20px; opacity: 0.6; flex-shrink: 0; }
+  .sidebar-nav li a.active .nav-icon { opacity: 1; }
+
+  .nav-badge {
+    margin-left: auto; background: #DC2626; color: #fff; font-size: 10px;
+    font-weight: 600; padding: 2px 7px; border-radius: 10px; min-width: 20px; text-align: center;
+  }
+
+  .nav-badge.info { background: var(--accent); }
+
+  .sidebar-footer {
+    margin-top: auto; padding: 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .user-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px; border-radius: 8px; cursor: pointer; transition: background 0.15s;
+  }
+
+  .user-card:hover { background: var(--sidebar-hover); }
+
+  .user-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 600;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { color: #fff; font-size: 13px; font-weight: 500; }
+  .user-role { color: var(--sidebar-text); font-size: 11px; }
+
+  /* ===== MAIN ===== */
+  .main-content { flex: 1; margin-left: 260px; min-height: 100vh; }
+
+  /* Top Bar */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px; height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .back-btn:hover { background: var(--surface-2); color: var(--text-primary); }
+
+  .topbar-breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb span.current { color: var(--text-primary); font-weight: 500; }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 20px; background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; font-family: inherit;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s;
+  }
+
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  .btn-success {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 20px; background: var(--success); color: #fff;
+    border: none; border-radius: 8px; font-family: inherit;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s;
+  }
+
+  .btn-success:hover { background: #047857; }
+
+  .btn-danger-outline {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 20px; background: var(--surface); color: var(--danger);
+    border: 1px solid var(--danger); border-radius: 8px; font-family: inherit;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+  }
+
+  .btn-danger-outline:hover { background: var(--danger-light); }
+
+  .btn-outline {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; background: var(--surface); color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 8px; font-family: inherit;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+  }
+
+  .btn-outline:hover { background: var(--surface-2); color: var(--text-primary); }
+
+  /* ===== PAGE ===== */
+  .page-content { padding: 28px 32px; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .card-title { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; }
+
+  /* ===== PAYMENT HEADER ===== */
+  .payment-header-card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .payment-main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .payment-ref {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .payment-ref-id {
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-size: 11.5px;
+  }
+
+  .payment-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+
+  .payment-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .meta-item svg { color: var(--text-tertiary); }
+
+  .payment-amount-section {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .payment-amount {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 500; white-space: nowrap;
+  }
+
+  .status-badge.pending { background: var(--warning-light); color: var(--warning); }
+  .status-badge.approved { background: var(--success-light); color: var(--success); }
+  .status-badge.in-review { background: var(--accent-light); color: var(--accent); }
+
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+  }
+
+  .type-tag {
+    display: inline-flex; padding: 3px 10px; border-radius: 4px;
+    font-size: 11.5px; font-weight: 500;
+    background: var(--accent-light); color: var(--accent);
+    border: 1px solid rgba(37,99,235,0.15);
+  }
+
+  /* ===== APPROVAL FLOW ===== */
+  .approval-timeline {
+    padding: 20px 24px;
+  }
+
+  .timeline-step {
+    display: flex;
+    gap: 16px;
+    position: relative;
+    padding-bottom: 28px;
+  }
+
+  .timeline-step:last-child { padding-bottom: 0; }
+
+  .timeline-step::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 38px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-light);
+  }
+
+  .timeline-step:last-child::before { display: none; }
+
+  .timeline-step.completed::before { background: var(--success); }
+
+  .timeline-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative; z-index: 2;
+  }
+
+  .timeline-icon.completed {
+    background: var(--success);
+    color: #fff;
+  }
+
+  .timeline-icon.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+    animation: pulse-blue 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-blue {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(37,99,235,0.15); }
+    50% { box-shadow: 0 0 0 8px rgba(37,99,235,0.08); }
+  }
+
+  .timeline-icon.pending {
+    background: var(--surface-2);
+    color: var(--text-tertiary);
+    border: 2px solid var(--border);
+  }
+
+  .timeline-body { flex: 1; padding-top: 2px; }
+
+  .timeline-title {
+    font-size: 14px; font-weight: 600; color: var(--text-primary);
+    margin-bottom: 3px;
+  }
+
+  .timeline-desc {
+    font-size: 12.5px; color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .timeline-user {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 8px; padding: 4px 10px 4px 4px;
+    background: var(--surface-2); border-radius: 20px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+
+  .timeline-user-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 600; color: #fff;
+  }
+
+  .timeline-timestamp {
+    font-size: 11px; color: var(--text-tertiary); margin-top: 4px;
+  }
+
+  /* ===== DETAIL FIELDS ===== */
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .detail-row:last-child { border-bottom: none; }
+
+  .detail-label {
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    min-width: 140px;
+  }
+
+  .detail-value {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* ===== DOCUMENTS ===== */
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.12s;
+    cursor: pointer;
+  }
+
+  .doc-item:hover { background: #FAFBFD; }
+  .doc-item:last-child { border-bottom: none; }
+
+  .doc-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .doc-icon.pdf { background: #FEF2F2; color: var(--danger); }
+  .doc-icon.xls { background: var(--success-light); color: var(--success); }
+  .doc-icon.img { background: var(--accent-light); color: var(--accent); }
+
+  .doc-info { flex: 1; }
+
+  .doc-name {
+    font-size: 13px; font-weight: 500; color: var(--text-primary);
+  }
+
+  .doc-meta {
+    font-size: 11.5px; color: var(--text-tertiary); margin-top: 1px;
+  }
+
+  .doc-action {
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .doc-action:hover { color: var(--accent); }
+
+  /* ===== NOTES ===== */
+  .note-item {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .note-item:last-child { border-bottom: none; }
+
+  .note-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .note-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; color: #fff;
+  }
+
+  .note-author { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .note-time { font-size: 11.5px; color: var(--text-tertiary); }
+
+  .note-text {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.55; padding-left: 38px;
+  }
+
+  .note-input-area {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-light);
+    display: flex; gap: 10px;
+  }
+
+  .note-input {
+    flex: 1; padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px; font-family: inherit;
+    font-size: 13px; color: var(--text-primary);
+    outline: none; transition: border-color 0.15s;
+    background: var(--surface);
+  }
+
+  .note-input:focus { border-color: var(--accent); }
+
+  .note-input::placeholder { color: var(--text-tertiary); }
+
+  .note-send {
+    padding: 10px 16px; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    border: none; font-family: inherit;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: background 0.15s;
+  }
+
+  .note-send:hover { background: var(--accent-hover); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">CAP</div>
+      <div class="brand-text">
+        <span class="brand-name">WBL Payments</span>
+        <span class="brand-sub">Approval Portal</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <ul class="sidebar-nav">
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+          New Request
+        </a></li>
+        <li><a href="#" class="active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          Approval Queue
+          <span class="nav-badge">7</span>
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          My Requests
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Payment Types</div>
+      <ul class="sidebar-nav">
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M2 12h20M2 6h20M2 18h20"/></svg>All Types</a></li>
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Wire Transfer</a></li>
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>ACH</a></li>
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>Legal Billing</a></li>
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Broker / ISO</a></li>
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Holdback Release</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Tools</div>
+      <ul class="sidebar-nav">
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>Reports</a></li>
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Audit Trail</a></li>
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Export</a></li>
+        <li><a href="#"><svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">BZ</div>
+        <div class="user-info">
+          <div class="user-name">Bryne Zuege</div>
+          <div class="user-role">Treasury Manager</div>
+        </div>
+        <svg width="16" height="16" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="#" class="back-btn">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          Back
+        </a>
+        <div class="topbar-breadcrumb">
+          Approval Queue <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          <span class="current">REF #CAP-2026-0086</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-outline">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+          Print
+        </button>
+        <button class="btn-danger-outline">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+          Deny
+        </button>
+        <button class="btn-outline">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+          Return for Correction
+        </button>
+        <button class="btn-success">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+          Approve Payment
+        </button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Payment Header -->
+      <div class="payment-header-card">
+        <div class="payment-main">
+          <div class="payment-ref">
+            Reference <span class="payment-ref-id">CAP-2026-0086</span>
+            <span class="type-tag" style="margin-left: 8px;">Wire Transfer</span>
+          </div>
+          <h1 class="payment-title">Levey Law Firm — Corrective Wire</h1>
+          <div class="payment-meta">
+            <div class="meta-item">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              Submitted by Sarah Mitchell
+            </div>
+            <div class="meta-item">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              May 11, 2026
+            </div>
+            <div class="meta-item">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Priority: Standard
+            </div>
+          </div>
+        </div>
+        <div class="payment-amount-section">
+          <div class="payment-amount">$891.36</div>
+          <span class="status-badge pending"><span class="status-dot"></span>Pending Approval</span>
+        </div>
+      </div>
+
+      <!-- Detail Grid -->
+      <div class="detail-grid">
+        <!-- Left Column -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Approval Flow -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Approval Workflow</h2>
+              <span style="font-size: 12px; color: var(--text-tertiary);">Step 2 of 4</span>
+            </div>
+            <div class="approval-timeline">
+              <!-- Step 1: Submitted -->
+              <div class="timeline-step completed">
+                <div class="timeline-icon completed">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <div class="timeline-body">
+                  <div class="timeline-title">Submitted</div>
+                  <div class="timeline-desc">Payment request created and submitted for review</div>
+                  <div class="timeline-user">
+                    <div class="timeline-user-avatar" style="background: #6366F1;">SM</div>
+                    Sarah Mitchell · AP Specialist
+                  </div>
+                  <div class="timeline-timestamp">May 11, 2026 at 2:34 PM EST</div>
+                </div>
+              </div>
+
+              <!-- Step 2: Treasury Review (Active) -->
+              <div class="timeline-step">
+                <div class="timeline-icon active">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <div class="timeline-body">
+                  <div class="timeline-title">Treasury Review</div>
+                  <div class="timeline-desc">Awaiting treasury manager review and approval. Verify payment details, banking information, and compliance requirements.</div>
+                  <div class="timeline-user">
+                    <div class="timeline-user-avatar" style="background: #EC4899;">BZ</div>
+                    Bryne Zuege · Treasury Manager
+                  </div>
+                  <div class="timeline-timestamp" style="color: var(--warning); font-weight: 500;">⏳ Awaiting action — assigned 4 hours ago</div>
+                </div>
+              </div>
+
+              <!-- Step 3: Wire Instruction -->
+              <div class="timeline-step">
+                <div class="timeline-icon pending">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div class="timeline-body">
+                  <div class="timeline-title" style="color: var(--text-tertiary);">Wire Instruction Issued</div>
+                  <div class="timeline-desc" style="color: var(--text-tertiary);">Wire instruction will be issued to the receiving bank once approved</div>
+                  <div class="timeline-user" style="opacity: 0.5;">
+                    <div class="timeline-user-avatar" style="background: #F59E0B;">VM</div>
+                    Vitor Matsumura · Wire Operations
+                  </div>
+                  <div class="timeline-timestamp">Pending</div>
+                </div>
+              </div>
+
+              <!-- Step 4: Confirmed -->
+              <div class="timeline-step">
+                <div class="timeline-icon pending">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                </div>
+                <div class="timeline-body">
+                  <div class="timeline-title" style="color: var(--text-tertiary);">Payment Confirmed</div>
+                  <div class="timeline-desc" style="color: var(--text-tertiary);">Bank confirmation and settlement acknowledgment</div>
+                  <div class="timeline-user" style="opacity: 0.5;">
+                    <div class="timeline-user-avatar" style="background: #10B981;">OB</div>
+                    Optimum Bank · Auto-confirmation
+                  </div>
+                  <div class="timeline-timestamp">Pending</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes & Comments -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Notes & Comments</h2>
+              <span style="font-size: 12px; color: var(--text-tertiary);">2 notes</span>
+            </div>
+            <div class="note-item">
+              <div class="note-header">
+                <div class="note-avatar" style="background: #6366F1;">SM</div>
+                <span class="note-author">Sarah Mitchell</span>
+                <span class="note-time">May 11 at 2:34 PM</span>
+              </div>
+              <div class="note-text">Corrective wire to Levey Law Firm per settlement agreement dated April 28. Original wire #CAP-2026-0071 was short by $891.36 due to incorrect fee calculation. Please expedite — deadline is May 15.</div>
+            </div>
+            <div class="note-item">
+              <div class="note-header">
+                <div class="note-avatar" style="background: #EC4899;">BZ</div>
+                <span class="note-author">Bryne Zuege</span>
+                <span class="note-time">May 11 at 3:10 PM</span>
+              </div>
+              <div class="note-text">Verified against original wire record. Amount matches the delta. Reviewing beneficiary bank details before approving. @VM please prepare the wire instruction.</div>
+            </div>
+            <div class="note-input-area">
+              <input type="text" class="note-input" placeholder="Add a note... Use @mention to tag someone">
+              <button class="note-send">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Payment Details -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Payment Details</h2>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Payee</span>
+              <span class="detail-value">Levey Law Firm PLLC</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Payment Type</span>
+              <span class="detail-value">Domestic Wire (FedWire)</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Amount</span>
+              <span class="detail-value" style="font-size: 15px;">$891.36</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Currency</span>
+              <span class="detail-value">USD</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Receiving Bank</span>
+              <span class="detail-value">JPMorgan Chase N.A.</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">ABA / Routing #</span>
+              <span class="detail-value" style="font-family: 'SF Mono', Consolas, monospace; font-size: 12px;">021000021</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Account #</span>
+              <span class="detail-value" style="font-family: 'SF Mono', Consolas, monospace; font-size: 12px;">****7842</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">GL Code</span>
+              <span class="detail-value">6200 — Legal Expenses</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Cost Center</span>
+              <span class="detail-value">CC-401 Legal Ops</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Memo</span>
+              <span class="detail-value" style="color: var(--text-secondary); font-weight: 400; max-width: 200px; text-align: right; line-height: 1.4;">Corrective wire per settlement #SA-2026-114</span>
+            </div>
+          </div>
+
+          <!-- Supporting Documents -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Supporting Documents</h2>
+              <span style="font-size: 12px; color: var(--accent); cursor: pointer; font-weight: 500;">+ Upload</span>
+            </div>
+            <div class="doc-item">
+              <div class="doc-icon pdf">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+              </div>
+              <div class="doc-info">
+                <div class="doc-name">Settlement_Agreement_SA-2026-114.pdf</div>
+                <div class="doc-meta">2.4 MB · Uploaded May 11</div>
+              </div>
+              <div class="doc-action">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              </div>
+            </div>
+            <div class="doc-item">
+              <div class="doc-icon pdf">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+              </div>
+              <div class="doc-info">
+                <div class="doc-name">Original_Wire_CAP-2026-0071_Confirmation.pdf</div>
+                <div class="doc-meta">845 KB · Uploaded May 11</div>
+              </div>
+              <div class="doc-action">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              </div>
+            </div>
+            <div class="doc-item">
+              <div class="doc-icon xls">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+              </div>
+              <div class="doc-info">
+                <div class="doc-name">Fee_Calculation_Breakdown.xlsx</div>
+                <div class="doc-meta">128 KB · Uploaded May 11</div>
+              </div>
+              <div class="doc-action">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audit Log -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Audit Log</h2>
+              <span style="font-size: 12px; color: var(--accent); cursor: pointer; font-weight: 500;">Full log →</span>
+            </div>
+            <div style="padding: 12px 24px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-light); display: flex; gap: 12px; align-items: flex-start;">
+              <span style="color: var(--text-tertiary); white-space: nowrap; min-width: 110px; font-variant-numeric: tabular-nums;">May 11, 3:10 PM</span>
+              <span>Bryne Zuege opened the request and began treasury review</span>
+            </div>
+            <div style="padding: 12px 24px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-light); display: flex; gap: 12px; align-items: flex-start;">
+              <span style="color: var(--text-tertiary); white-space: nowrap; min-width: 110px; font-variant-numeric: tabular-nums;">May 11, 2:35 PM</span>
+              <span>System auto-routed to Treasury Review queue</span>
+            </div>
+            <div style="padding: 12px 24px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-light); display: flex; gap: 12px; align-items: flex-start;">
+              <span style="color: var(--text-tertiary); white-space: nowrap; min-width: 110px; font-variant-numeric: tabular-nums;">May 11, 2:34 PM</span>
+              <span>Sarah Mitchell submitted request with 3 supporting documents</span>
+            </div>
+            <div style="padding: 12px 24px; font-size: 12px; color: var(--text-secondary); display: flex; gap: 12px; align-items: flex-start;">
+              <span style="color: var(--text-tertiary); white-space: nowrap; min-width: 110px; font-variant-numeric: tabular-nums;">May 11, 2:20 PM</span>
+              <span>Sarah Mitchell created draft request CAP-2026-0086</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

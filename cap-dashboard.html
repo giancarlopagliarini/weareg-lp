@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAP — Centralized Approval Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #F8F9FB;
+    --surface: #FFFFFF;
+    --surface-2: #F1F3F7;
+    --border: #E2E5EB;
+    --border-light: #ECEEF2;
+    --text-primary: #0F1729;
+    --text-secondary: #5A6178;
+    --text-tertiary: #8B91A5;
+    --accent: #2563EB;
+    --accent-light: #EFF4FF;
+    --accent-hover: #1D4FD7;
+    --success: #059669;
+    --success-light: #ECFDF5;
+    --warning: #D97706;
+    --warning-light: #FFFBEB;
+    --danger: #DC2626;
+    --danger-light: #FEF2F2;
+    --sidebar-bg: #0F1729;
+    --sidebar-text: #94A3C4;
+    --sidebar-active: #FFFFFF;
+    --sidebar-hover: rgba(255,255,255,0.06);
+    --sidebar-accent: #3B82F6;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow-sm: 0 1px 2px rgba(15,23,41,0.05);
+    --shadow-md: 0 4px 12px rgba(15,23,41,0.08);
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== LAYOUT ===== */
+  .app-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: 260px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 100;
+    overflow-y: auto;
+  }
+
+  .sidebar-brand {
+    padding: 24px 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #3B82F6, #6366F1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+    font-size: 14px;
+    letter-spacing: -0.5px;
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+  }
+
+  .brand-sub {
+    color: var(--sidebar-text);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .sidebar-section {
+    padding: 16px 12px 8px;
+  }
+
+  .sidebar-label {
+    padding: 0 12px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--sidebar-text);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 8px;
+  }
+
+  .sidebar-nav {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 450;
+    transition: all 0.15s;
+  }
+
+  .sidebar-nav li a:hover {
+    background: var(--sidebar-hover);
+    color: #C7D2E9;
+  }
+
+  .sidebar-nav li a.active {
+    background: rgba(59,130,246,0.12);
+    color: var(--sidebar-active);
+    font-weight: 500;
+  }
+
+  .sidebar-nav li a .nav-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  .sidebar-nav li a.active .nav-icon {
+    opacity: 1;
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .nav-badge.info {
+    background: var(--accent);
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .user-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .user-card:hover { background: var(--sidebar-hover); }
+
+  .user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .user-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-name {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .user-role {
+    color: var(--sidebar-text);
+    font-size: 11px;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .main-content {
+    flex: 1;
+    margin-left: 260px;
+    min-height: 100vh;
+  }
+
+  /* ===== TOP BAR ===== */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .topbar-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+
+  .topbar-breadcrumb span.current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .topbar-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 8px 14px;
+    width: 320px;
+    transition: border-color 0.15s;
+  }
+
+  .topbar-search:focus-within { border-color: var(--accent); }
+
+  .topbar-search input {
+    border: none;
+    background: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-primary);
+    width: 100%;
+  }
+
+  .topbar-search input::placeholder { color: var(--text-tertiary); }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .topbar-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .topbar-btn:hover {
+    background: var(--surface-2);
+    color: var(--text-primary);
+  }
+
+  .topbar-btn .notif-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 7px;
+    height: 7px;
+    background: var(--danger);
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-primary:hover { background: var(--accent-hover); }
+
+  /* ===== PAGE CONTENT ===== */
+  .page-content {
+    padding: 28px 32px;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    color: var(--text-primary);
+  }
+
+  .page-subtitle {
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    margin-top: 4px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-outline:hover {
+    background: var(--surface-2);
+    color: var(--text-primary);
+    border-color: var(--text-tertiary);
+  }
+
+  /* ===== STATS CARDS ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: box-shadow 0.2s;
+  }
+
+  .stat-card:hover { box-shadow: var(--shadow-md); }
+
+  .stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-icon.blue { background: var(--accent-light); color: var(--accent); }
+  .stat-icon.green { background: var(--success-light); color: var(--success); }
+  .stat-icon.amber { background: var(--warning-light); color: var(--warning); }
+  .stat-icon.red { background: var(--danger-light); color: var(--danger); }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-change {
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .stat-change.up { color: var(--success); }
+  .stat-change.down { color: var(--danger); }
+
+  /* ===== TABLE / QUEUE ===== */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+
+  .card-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 3px;
+  }
+
+  .card-tab {
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .card-tab.active {
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Approval Queue Table */
+  .queue-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .queue-table thead th {
+    padding: 10px 20px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text-tertiary);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .queue-table tbody tr {
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.12s;
+    cursor: pointer;
+  }
+
+  .queue-table tbody tr:hover { background: #F5F7FB; }
+  .queue-table tbody tr:last-child { border-bottom: none; }
+
+  .queue-table td {
+    padding: 14px 20px;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+
+  .payee-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .payee-name {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .payee-ref {
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+  }
+
+  .amount-cell {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.3px;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .status-badge.pending { background: var(--warning-light); color: var(--warning); }
+  .status-badge.approved { background: var(--success-light); color: var(--success); }
+  .status-badge.in-review { background: var(--accent-light); color: var(--accent); }
+  .status-badge.rejected { background: var(--danger-light); color: var(--danger); }
+  .status-badge.processing { background: #F0F0FF; color: #6366F1; }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .type-tag {
+    display: inline-flex;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+  }
+
+  /* ===== RIGHT PANEL ===== */
+  .activity-item {
+    display: flex;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.12s;
+  }
+
+  .activity-item:last-child { border-bottom: none; }
+  .activity-item:hover { background: #FAFBFD; }
+
+  .activity-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  .activity-dot.blue { background: var(--accent); }
+  .activity-dot.green { background: var(--success); }
+  .activity-dot.amber { background: var(--warning); }
+  .activity-dot.red { background: var(--danger); }
+
+  .activity-content { flex: 1; }
+
+  .activity-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.45;
+  }
+
+  .activity-text strong { font-weight: 600; }
+
+  .activity-time {
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    margin-top: 3px;
+  }
+
+  .activity-amount {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ===== PROCESSING SUMMARY ===== */
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 13px;
+  }
+
+  .summary-row:last-child { border-bottom: none; }
+
+  .summary-label {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .summary-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 12px 20px;
+    width: calc(100% - 40px);
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-fill.blue { background: var(--accent); }
+
+  /* ===== APPROVER AVATARS ===== */
+  .approver-stack {
+    display: flex;
+  }
+
+  .approver-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    border: 2px solid var(--surface);
+    margin-left: -6px;
+  }
+
+  .approver-avatar:first-child { margin-left: 0; }
+  .approver-avatar.a1 { background: #6366F1; }
+  .approver-avatar.a2 { background: #EC4899; }
+  .approver-avatar.a3 { background: #F59E0B; }
+  .approver-avatar.a4 { background: #10B981; }
+  .approver-avatar.a-more { background: var(--surface-2); color: var(--text-tertiary); font-size: 9px; }
+
+  /* ===== FOOTER BAR ===== */
+  .page-footer {
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-light);
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .page-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">CAP</div>
+      <div class="brand-text">
+        <span class="brand-name">WBL Payments</span>
+        <span class="brand-sub">Approval Portal</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <ul class="sidebar-nav">
+        <li><a href="#" class="active">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Dashboard
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+          New Request
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          Approval Queue
+          <span class="nav-badge">7</span>
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          My Requests
+          <span class="nav-badge info">3</span>
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Payment Types</div>
+      <ul class="sidebar-nav">
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M2 12h20M2 6h20M2 18h20"/></svg>
+          All Types
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Wire Transfer
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          ACH
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          Legal Billing
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Broker / ISO
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Holdback Release
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Tools</div>
+      <ul class="sidebar-nav">
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+          Reports
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+          Audit Trail
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Export
+        </a></li>
+        <li><a href="#">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Settings
+        </a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">BZ</div>
+        <div class="user-info">
+          <div class="user-name">Bryne Zuege</div>
+          <div class="user-role">Treasury Manager</div>
+        </div>
+        <svg width="16" height="16" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main-content">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-breadcrumb">
+          CAP <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          <span class="current">Dashboard</span>
+        </div>
+        <div class="topbar-search">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search requests, payees, REF#...">
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="notif-dot"></span>
+        </button>
+        <button class="topbar-btn">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </button>
+        <button class="btn-primary">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          New Request
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Payment Approvals</h1>
+          <p class="page-subtitle">Track and manage all payment requests across your organization</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-outline">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Export
+          </button>
+          <button class="btn-outline">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Analytics
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Pending Approval</span>
+            <div class="stat-icon amber">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">7</div>
+          <span class="stat-change up">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
+            2 since yesterday
+          </span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Processed This Week</span>
+            <div class="stat-icon green">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">23</div>
+          <span class="stat-change up">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
+            +15.2% vs last week
+          </span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Total Disbursed (May)</span>
+            <div class="stat-icon blue">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">$847K</div>
+          <span class="stat-change up">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
+            +8.4% vs April
+          </span>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Avg. Approval Time</span>
+            <div class="stat-icon red">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+          </div>
+          <div class="stat-value">1.2d</div>
+          <span class="stat-change down">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            -0.3d improvement
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="content-grid">
+        <!-- Approval Queue Table -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Approval Queue</h2>
+            <div class="card-tabs">
+              <button class="card-tab active">Pending (7)</button>
+              <button class="card-tab">In Review (3)</button>
+              <button class="card-tab">All Active</button>
+            </div>
+          </div>
+          <table class="queue-table">
+            <thead>
+              <tr>
+                <th>Payee / Reference</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Approvers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="payee-cell">
+                    <span class="payee-name">Levey Law Firm — Corrective Wire</span>
+                    <span class="payee-ref">REF #CAP-2026-0086</span>
+                  </div>
+                </td>
+                <td><span class="type-tag">Wire</span></td>
+                <td class="amount-cell">$891.36</td>
+                <td style="color: var(--text-secondary); font-size: 12.5px;">May 11, 2026</td>
+                <td><span class="status-badge pending"><span class="status-dot"></span>Pending</span></td>
+                <td>
+                  <div class="approver-stack">
+                    <div class="approver-avatar a1">BZ</div>
+                    <div class="approver-avatar a2">VM</div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="payee-cell">
+                    <span class="payee-name">Zaslav Real Estate — ISO Commission</span>
+                    <span class="payee-ref">REF #CAP-2026-0085</span>
+                  </div>
+                </td>
+                <td><span class="type-tag">Broker/ISO</span></td>
+                <td class="amount-cell">$1,250.00</td>
+                <td style="color: var(--text-secondary); font-size: 12.5px;">May 11, 2026</td>
+                <td><span class="status-badge in-review"><span class="status-dot"></span>In Review</span></td>
+                <td>
+                  <div class="approver-stack">
+                    <div class="approver-avatar a3">JT</div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="payee-cell">
+                    <span class="payee-name">Morrison & Foerster LLP — Legal Retainer</span>
+                    <span class="payee-ref">REF #CAP-2026-0084</span>
+                  </div>
+                </td>
+                <td><span class="type-tag">Legal</span></td>
+                <td class="amount-cell">$24,500.00</td>
+                <td style="color: var(--text-secondary); font-size: 12.5px;">May 10, 2026</td>
+                <td><span class="status-badge pending"><span class="status-dot"></span>Pending</span></td>
+                <td>
+                  <div class="approver-stack">
+                    <div class="approver-avatar a1">BZ</div>
+                    <div class="approver-avatar a4">RL</div>
+                    <div class="approver-avatar a2">KS</div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="payee-cell">
+                    <span class="payee-name">Apex Construction — Holdback Release Q1</span>
+                    <span class="payee-ref">REF #CAP-2026-0083</span>
+                  </div>
+                </td>
+                <td><span class="type-tag">Holdback</span></td>
+                <td class="amount-cell">$78,200.00</td>
+                <td style="color: var(--text-secondary); font-size: 12.5px;">May 9, 2026</td>
+                <td><span class="status-badge pending"><span class="status-dot"></span>Pending</span></td>
+                <td>
+                  <div class="approver-stack">
+                    <div class="approver-avatar a4">RL</div>
+                    <div class="approver-avatar a3">JT</div>
+                    <div class="approver-avatar a-more">+2</div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="payee-cell">
+                    <span class="payee-name">Meridian Capital Group — ACH Transfer</span>
+                    <span class="payee-ref">REF #CAP-2026-0082</span>
+                  </div>
+                </td>
+                <td><span class="type-tag">ACH</span></td>
+                <td class="amount-cell">$15,750.00</td>
+                <td style="color: var(--text-secondary); font-size: 12.5px;">May 9, 2026</td>
+                <td><span class="status-badge in-review"><span class="status-dot"></span>In Review</span></td>
+                <td>
+                  <div class="approver-stack">
+                    <div class="approver-avatar a1">BZ</div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="payee-cell">
+                    <span class="payee-name">Sterling Partners LLC — Wire Transfer</span>
+                    <span class="payee-ref">REF #CAP-2026-0081</span>
+                  </div>
+                </td>
+                <td><span class="type-tag">Wire</span></td>
+                <td class="amount-cell">$42,800.00</td>
+                <td style="color: var(--text-secondary); font-size: 12.5px;">May 8, 2026</td>
+                <td><span class="status-badge pending"><span class="status-dot"></span>Pending</span></td>
+                <td>
+                  <div class="approver-stack">
+                    <div class="approver-avatar a2">VM</div>
+                    <div class="approver-avatar a4">RL</div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="payee-cell">
+                    <span class="payee-name">Greenfield Associates — Consulting Fee</span>
+                    <span class="payee-ref">REF #CAP-2026-0080</span>
+                  </div>
+                </td>
+                <td><span class="type-tag">ACH</span></td>
+                <td class="amount-cell">$6,200.00</td>
+                <td style="color: var(--text-secondary); font-size: 12.5px;">May 8, 2026</td>
+                <td><span class="status-badge pending"><span class="status-dot"></span>Pending</span></td>
+                <td>
+                  <div class="approver-stack">
+                    <div class="approver-avatar a1">BZ</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="page-footer">
+            <span>Showing 7 of 34 requests</span>
+            <div class="pagination">
+              <button class="page-btn">&lsaquo;</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn">&rsaquo;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Processing Summary -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Weekly Summary</h2>
+              <span style="font-size: 12px; color: var(--text-tertiary);">May 5 – 11</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;"></span>
+                Approved & Paid
+              </span>
+              <span class="summary-value" style="color: var(--success);">$412,680</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--warning);display:inline-block;"></span>
+                Awaiting Approval
+              </span>
+              <span class="summary-value" style="color: var(--warning);">$169,591</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
+                In Treasury Review
+              </span>
+              <span class="summary-value" style="color: var(--accent);">$17,000</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--danger);display:inline-block;"></span>
+                Denied / Returned
+              </span>
+              <span class="summary-value" style="color: var(--danger);">$3,200</span>
+            </div>
+            <div style="padding: 12px 20px 16px;">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px;">
+                <span>Completion rate</span>
+                <span style="font-weight: 600; color: var(--text-primary);">68.5%</span>
+              </div>
+              <div style="width:100%;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden;">
+                <div style="width:68.5%;height:100%;background:var(--accent);border-radius:3px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="card" style="flex: 1;">
+            <div class="card-header">
+              <h2 class="card-title">Recent Activity</h2>
+              <span style="font-size: 12px; color: var(--accent); cursor: pointer; font-weight: 500;">View all</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Bryne Zuege</strong> approved payment to Vertex Partners</div>
+                <div class="activity-time">12 minutes ago</div>
+              </div>
+              <div class="activity-amount">$32,400</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot blue"></div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Sarah Mitchell</strong> submitted a new wire request</div>
+                <div class="activity-time">38 minutes ago</div>
+              </div>
+              <div class="activity-amount">$891</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot amber"></div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Vitor Matsumura</strong> sent back REF #0079 for correction</div>
+                <div class="activity-time">1 hour ago</div>
+              </div>
+              <div class="activity-amount">$5,100</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot green"></div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Optimum Bank</strong> confirmed wire transfer #0077</div>
+                <div class="activity-time">2 hours ago</div>
+              </div>
+              <div class="activity-amount">$118,500</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot red"></div>
+              <div class="activity-content">
+                <div class="activity-text"><strong>Rachel Liu</strong> denied holdback release #0075</div>
+                <div class="activity-time">3 hours ago</div>
+              </div>
+              <div class="activity-amount">$3,200</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
